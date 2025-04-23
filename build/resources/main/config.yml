@@ -1,0 +1,6 @@
+Prefix: "&7[Totem]"
+ResurrectMessage: "&a你被图腾救了一命！"
+PotionEffectDuration: 10
+PotionEffectStrength: 1
+HideEffectParticles: false
+ShowTotemEffect: true
