@@ -1,0 +1,3 @@
+name: AutoTotem
+version: '${version}'
+main: autototem.autototem.AutoTotem
