@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
@@ -17,7 +18,6 @@ public final class AutoTotem extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        // 注册监听器
         getServer().getPluginManager().registerEvents(this, this);
         getLogger().info("AutoTotem 已启用");
     }
@@ -27,15 +27,13 @@ public final class AutoTotem extends JavaPlugin implements Listener {
         getLogger().info("AutoTotem 已停用");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDamage(EntityDamageEvent event) {
-        Entity e = event.getEntity();
-        if (!(e instanceof Player)) return;
-
-        Player player = (Player) e;
+        if (!(event.getEntity() instanceof Player)) return;
+        Player player = (Player) event.getEntity();
         double health = player.getHealth();
         double damage = event.getFinalDamage();
-        // 只有会致死时才触发
+        // 只有会致死时才处理
         if (damage < health) return;
 
         PlayerInventory inv = player.getInventory();
@@ -48,28 +46,23 @@ public final class AutoTotem extends JavaPlugin implements Listener {
                 break;
             }
         }
-        if (slot == -1) {
-            // 没有图腾，正常死亡
-            return;
-        }
+        if (slot == -1) return; // 没有图腾，继续正常死亡
 
-        // 扣除一个图腾
+        // 恢复事件并取消伤害，保证玩家不死
+        event.setCancelled(false);
+        event.setDamage(0);
+
+        // 消耗一个图腾
         ItemStack totem = inv.getItem(slot);
         totem.setAmount(totem.getAmount() - 1);
         inv.setItem(slot, totem.getAmount() > 0 ? totem : null);
 
-        // 取消致死伤害
-        event.setDamage(0);
-
-        // 原版图腾药水效果：
-        // —— 再生 II，持续 45 秒（45*20 = 900 tick）
-        // —— 吸收 II，持续 5 秒（5*20 = 100 tick）
-        // —— 火焰抗性 I，持续 40 秒（40*20 = 800 tick）
+        // 原版图腾效果
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 900, 1, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION,   100, 1, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 800, 0, false, false));
 
-        // 播放图腾的复活动画
+        // 播放复活动画
         player.playEffect(EntityEffect.TOTEM_RESURRECT);
     }
 }
