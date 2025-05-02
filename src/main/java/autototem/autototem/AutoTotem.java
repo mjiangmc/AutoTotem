@@ -57,6 +57,11 @@ public final class AutoTotem extends JavaPlugin implements Listener {
         totem.setAmount(totem.getAmount() - 1);
         inv.setItem(slot, totem.getAmount() > 0 ? totem : null);
 
+        // fix clear effect
+        player.getActivePotionEffects().forEach(effect ->
+                player.removePotionEffect(effect.getType())
+        );
+        
         // 原版图腾效果
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 900, 1, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION,   100, 1, false, false));
